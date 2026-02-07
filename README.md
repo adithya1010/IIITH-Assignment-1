@@ -153,18 +153,6 @@ python -m pytest -q
 bash scripts/run_comparison.sh -f
 ```
 
-CI / Automation
-- If you'd like, I can add a GitHub Actions workflow that:
-  - creates the conda environment from `environment.yml`,
-  - runs `bash scripts/run_alignment.sh`,
-  - runs `bash scripts/run_comparison.sh -f`,
-  - runs `python -m pytest -q`, and
-  - fails the job on regression (no improvement or failing tests).
-
-If you want me to add the CI workflow as well, I can prepare that in a follow-up change.
-
-
-
 
 ## 5. Inspection and Analysis
 
