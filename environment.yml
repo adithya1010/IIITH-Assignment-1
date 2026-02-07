@@ -1,0 +1,21 @@
+# environment.yml
+# Reproducible conda environment for the Montreal Forced Aligner (MFA) pipeline.
+# Usage:
+#   conda env update -f environment.yml --prune
+# or
+#   conda env create -f environment.yml
+#
+# This environment installs MFA and a couple of useful audio/textgrid tools.
+name: mfa
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - montreal-forced-aligner
+  - praat
+  - sox
+  - pytest
+  - matplotlib
+  - pip
+  - pip:
+      - praatio
