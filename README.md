@@ -61,11 +61,13 @@ To handle words missing from the standard dictionary, a **Grapheme-to-Phoneme (G
 
 
 # Generate a custom dictionary for OOV words
+```bash
 mfa g2p my_corpus english_us_arpa my_oov_dictionary.dict
-
+```
 # Run final alignment incorporating the new dictionary entries
+```bash
 mfa align --clean my_corpus my_oov_dictionary.dict english_us_arpa ./my_final_results
-
+```
 ### Reproducible run (script & environment)
 
 A reproducible script and conda environment file were added to make the pipeline easy to run and reproduce.
