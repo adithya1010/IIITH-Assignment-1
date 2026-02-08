@@ -5,7 +5,7 @@
 
 Project done with help from Gemini 3 Flash and Raptor Mini(Github Copilot)
 
-*Link to Gemini Chat:* https://gemini.google.com/share/c18595e64419
+**Link to Gemini Chat:** https://gemini.google.com/share/c18595e64419
 
 
 # Forced Alignment using Montreal Forced Aligner (MFA)
