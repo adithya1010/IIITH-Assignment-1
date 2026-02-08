@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  CONDA_ENV_NAME: mfa
+
+jobs:
+  test:
+    name: Quick tests & comparison (PRs)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-activate-base: false
+          python-version: 3.8
+
+      - name: Create / update conda env
+        shell: bash -l {0}
+        run: |
+          # Create or update the 'mfa' environment from environment.yml
+          conda env create -f Assignment/environment.yml --name "${CONDA_ENV_NAME}" --prune --yes || conda env update -f Assignment/environment.yml --name "${CONDA_ENV_NAME}" --prune --yes
+          conda activate "${CONDA_ENV_NAME}"
+          python -V
+
+      - name: Run unit tests
+        shell: bash -l {0}
+        run: |
+          conda activate "${CONDA_ENV_NAME}"
+          python -m pytest -q Assignment/tests
+
+      - name: Run comparison (no re-run of alignments)
+        shell: bash -l {0}
+        run: |
+          conda activate "${CONDA_ENV_NAME}"
+          # Run the comparison using existing alignment outputs (won't re-run alignment)
+          bash Assignment/scripts/run_comparison.sh || true
+
+      - name: Upload reports (quick)
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: Assignment/reports
+
+  full:
+    name: Full alignment + comparison (push to main or manual)
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-activate-base: false
+          python-version: 3.8
+
+      - name: Create / update conda env
+        shell: bash -l {0}
+        run: |
+          conda env create -f Assignment/environment.yml --name "${CONDA_ENV_NAME}" --prune --yes || conda env update -f Assignment/environment.yml --name "${CONDA_ENV_NAME}" --prune --yes
+          conda activate "${CONDA_ENV_NAME}"
+          python -V
+          # quick sanity check for MFA CLI
+          if command -v mfa >/dev/null 2>&1; then mfa --version || true; else echo "mfa not found yet (will be created by env)"; fi
+
+      - name: Run full alignment and comparison
+        shell: bash -l {0}
+        run: |
+          conda activate "${CONDA_ENV_NAME}"
+          # Run the full pipeline and fail if no improvement detected (-r -f)
+          bash Assignment/scripts/run_alignment.sh
+          bash Assignment/scripts/run_comparison.sh -r -f
+
+      - name: Run unit tests (post-run)
+        shell: bash -l {0}
+        run: |
+          conda activate "${CONDA_ENV_NAME}"
+          python -m pytest -q Assignment/tests
+
+      - name: Upload reports and alignment outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment-reports
+          path: |
+            Assignment/reports
+            Assignment/my_final_results
+            Assignment/my_alignment_results
+          retention-days: 7
